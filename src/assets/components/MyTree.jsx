@@ -11,7 +11,7 @@ export const MyTree = ({Rectangles}) => {
     p5.draw = () => {
       let Rect = getRootFromData(Rectangles)
       const diam = 20
-      addCirclesAndStrokesToBinaryTree(Rectangles,diam,1.35)
+      addCirclesAndStrokesToBinaryTree(Rectangles,diam,1.55)
       Rect.cirX = 117*6
       Rect.cirY = 20*6
       let c = p5.color(255, 255, 255);

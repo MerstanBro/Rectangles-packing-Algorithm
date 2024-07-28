@@ -16,7 +16,7 @@ export const TheirTree = ({Rectangles}) => {
       let Rect = getRootFromData(saso,'j')
       Rect.cirX = 117*4
       Rect.cirY = 20*6
-      addCirclesAndStrokesToBinaryTree(saso, diam, 1.3, '2')
+      addCirclesAndStrokesToBinaryTree(saso, diam, 1.55, '2')
       let c = p5.color(255, 255, 255);
         p5.background(c);
         p5.textSize(diam);
