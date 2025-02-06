@@ -58,7 +58,3 @@ function App() {
 }
 
 export default App
-
-// {
-// <Navbar Rectangles = {Rectangles} setRectangles = {setRectangles}/>
-// <Mygrid Rectangles = {Rectangles}/>}
