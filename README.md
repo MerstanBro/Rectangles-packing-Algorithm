@@ -54,3 +54,6 @@ In summary, the `Rectangle` class is designed to represent rectangles in a 2D sp
 
 - The structure is inherently scalable. New rectangles can be added by simply adjusting the `right` and `below` properties of existing rectangles.
 - This allows for dynamic and flexible handling of rectangles, maintaining an optimized layout as the number of rectangles increases.
+
+
+p.s the website looks like shit on mobile use a desktop 
