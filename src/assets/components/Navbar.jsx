@@ -1,120 +1,265 @@
-import React from 'react';
-import { Box, Flex, Button, Menu, MenuButton, MenuList, MenuItem, Input} from '@chakra-ui/react';
-import { StringImportModal } from './StringImportModal';
-import { TextImportModal } from './TextImportModal';
-import { CheckModal } from './CheckModal';
-import PropTypes from 'prop-types';
-import { Rotate } from './Functions';
+import React from 'react'
+import {
+  Box,
+  Flex,
+  Button,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Input,
+  Text,
+  HStack,
+  Progress,
+  useColorModeValue,
+} from '@chakra-ui/react'
+import { StringImportModal } from './StringImportModal'
+import { TextImportModal } from './TextImportModal'
+import { CheckModal } from './CheckModal'
+import PropTypes from 'prop-types'
+import { FormatService } from '../services'
 
-export const Navbar = ({ Rectangles, setRectangles }) => {
-  const [inputValue, setInputValue] = React.useState('');
+export const Navbar = ({
+  Rectangles,
+  setRectangles,
+  isSolving,
+  setIsSolving,
+  solutionCount,
+  setSolutionCount,
+  onSolveStart,
+}) => {
+  const [inputValue, setInputValue] = React.useState('')
   const [ans, setAns] = React.useState(null)
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [isTextModalOpen, setTextModalOpen] = React.useState(false);
-  const [isStringModalOpen, setStringModalOpen] = React.useState(false);
-  const [isCheckModalOpen, setIsCheckModalOpen] = React.useState(false);
-  const [step, setStep] = React.useState(1);
+  const [currentIndex, setCurrentIndex] = React.useState(0)
+  const [isTextModalOpen, setTextModalOpen] = React.useState(false)
+  const [isStringModalOpen, setStringModalOpen] = React.useState(false)
+  const [isCheckModalOpen, setIsCheckModalOpen] = React.useState(false)
+  const [step, setStep] = React.useState(1)
+  const abortRef = React.useRef(null)
+
+  const surface = useColorModeValue('white', 'ink.900')
+  const border = useColorModeValue('ink.100', 'ink.700')
+  const menuColor = useColorModeValue('ink.900', 'ink.50')
+
   const updateAns = (v) => {
     setAns(v)
-    setRectangles(v[0])
+    setSolutionCount(v?.length ?? 0)
   }
-  const onImportClick = (type) => {
-    if (type === 'Text') {
-      setTextModalOpen(true);
-    } else if (type === 'String') {
-      setStringModalOpen(true);
-    }
-  };
 
-  const onCloseTextModal = () => setTextModalOpen(false);
-  const onCloseStringModal = () => setStringModalOpen(false);
-  const onCheckClick = () => setIsCheckModalOpen(true);
+  const appendSolution = (latest, all) => {
+    setAns(all)
+    setSolutionCount(all.length)
+    setRectangles(latest)
+    setCurrentIndex(all.length - 1)
+  }
+
+  const onImportClick = (type) => {
+    if (type === 'Text') setTextModalOpen(true)
+    else if (type === 'String') setStringModalOpen(true)
+  }
+
+  const onCloseTextModal = () => setTextModalOpen(false)
+  const onCloseStringModal = () => setStringModalOpen(false)
+  const onCheckClick = () => setIsCheckModalOpen(true)
   const onCloseCheckModal = () => {
-    setIsCheckModalOpen(false);
-    setStep(1);
-  };
+    setIsCheckModalOpen(false)
+    setStep(1)
+  }
 
   const onRotateClick = () => {
-    setRectangles(Rotate(Rectangles));
-  };
+    if (!Rectangles) return
+    setRectangles(FormatService.rotate(Rectangles))
+  }
+
+  const handleStop = () => {
+    abortRef.current?.abort()
+  }
 
   const handleRightClick = () => {
-    if (currentIndex < ans.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setRectangles(ans[currentIndex + 1]);
+    if (ans && currentIndex < ans.length - 1) {
+      const next = currentIndex + 1
+      setCurrentIndex(next)
+      setRectangles(ans[next])
     }
-  };
-  const handleInputChange = (event) => {
-    setInputValue(event.target.value);
-  };
-  const handleButtonClick = () => {
-    const value = parseInt(inputValue, 10);
-    if (!isNaN(value)) {
-      setCurrentIndex(value-1);
-      setRectangles(ans[value-1])
-    } else {
-      alert('Please enter a valid number');
-    }
-  };
+  }
+
   const handleLeftClick = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-      setRectangles(ans[currentIndex - 1]);
+    if (ans && currentIndex > 0) {
+      const prev = currentIndex - 1
+      setCurrentIndex(prev)
+      setRectangles(ans[prev])
     }
-  };
+  }
+
+  const handleInputChange = (event) => setInputValue(event.target.value)
+
+  const handleButtonClick = () => {
+    if (!ans) return
+    const value = parseInt(inputValue, 10)
+    if (!isNaN(value) && value >= 1 && value <= ans.length) {
+      setCurrentIndex(value - 1)
+      setRectangles(ans[value - 1])
+    } else {
+      alert('Please enter a valid number')
+    }
+  }
+
   return (
-      <Box position='sticky' top='5vh' width={460} bg="white" >
-        <Flex justify="space-around" bg="red.400" borderWidth="3px" borderRadius="lg">
-          <Menu>
-            <MenuButton as={Button} colorScheme="" variant="ghost" mr="4">
-              Import
-            </MenuButton>
-            <MenuList>
-              <MenuItem onClick={() => onImportClick('Text')}>Text</MenuItem>
-              <MenuItem onClick={() => onImportClick('String')}>String</MenuItem>
-            </MenuList>
-          </Menu>
-          <Button onClick={onCheckClick} colorScheme="" variant="ghost" mr="4">Check</Button>
-          <Button onClick={onRotateClick} colorScheme="" variant="ghost">Rotate</Button>
-        </Flex>
-        <StringImportModal isOpen={isStringModalOpen} onClose={onCloseStringModal} setRectangles={setRectangles} />
-        <TextImportModal isOpen={isTextModalOpen} onClose={onCloseTextModal} setRectangles={setRectangles} />
-        <CheckModal isOpen={isCheckModalOpen} onClose={onCloseCheckModal} setRectangles={setRectangles} step={step} setStep={setStep} setAns={updateAns} setCurrentIndex = {setCurrentIndex} />
-        {ans && (
-        <Flex top='20vh' justify="space-around" mt="3" mb='0'>
-          <Button onClick={handleLeftClick} disabled={currentIndex === 0} mr="4">
+    <Box
+      bg={surface}
+      border="1px solid"
+      borderColor={border}
+      borderRadius="2xl"
+      boxShadow="0 10px 28px rgba(26, 36, 33, 0.05)"
+      overflow="hidden"
+    >
+      <Flex
+        justify="space-between"
+        align="center"
+        px={3}
+        py={2}
+        bg="app.nav"
+        color="app.navText"
+        gap={2}
+        flexWrap="wrap"
+      >
+        <Menu>
+          <MenuButton as={Button} variant="ghost" color="ink.100" _hover={{ bg: 'ink.800' }} size="sm">
+            Import
+          </MenuButton>
+          <MenuList color={menuColor}>
+            <MenuItem onClick={() => onImportClick('Text')}>Text grid</MenuItem>
+            <MenuItem onClick={() => onImportClick('String')}>String format</MenuItem>
+          </MenuList>
+        </Menu>
+        <HStack spacing={1}>
+          <Button
+            onClick={onCheckClick}
+            variant="ghost"
+            color="citrus.200"
+            _hover={{ bg: 'ink.800' }}
+            size="sm"
+            isDisabled={isSolving}
+          >
+            Check
+          </Button>
+          <Button
+            onClick={onRotateClick}
+            variant="ghost"
+            color="ink.100"
+            _hover={{ bg: 'ink.800' }}
+            size="sm"
+            isDisabled={!Rectangles || isSolving}
+          >
+            Rotate
+          </Button>
+          {isSolving && (
+            <Button
+              onClick={handleStop}
+              variant="ghost"
+              color="red.200"
+              _hover={{ bg: 'ink.800' }}
+              size="sm"
+            >
+              Stop
+            </Button>
+          )}
+        </HStack>
+      </Flex>
+
+      {isSolving && (
+        <Box px={4} pt={3} pb={1}>
+          <Text fontSize="xs" fontFamily="mono" color="app.muted" mb={1}>
+            Live solve · {solutionCount} packing{solutionCount === 1 ? '' : 's'}
+          </Text>
+          <Progress
+            size="xs"
+            isIndeterminate
+            colorScheme="green"
+            borderRadius="full"
+            bg="app.surfaceMuted"
+          />
+        </Box>
+      )}
+
+      <StringImportModal
+        isOpen={isStringModalOpen}
+        onClose={onCloseStringModal}
+        setRectangles={setRectangles}
+      />
+      <TextImportModal
+        isOpen={isTextModalOpen}
+        onClose={onCloseTextModal}
+        setRectangles={setRectangles}
+      />
+      <CheckModal
+        isOpen={isCheckModalOpen}
+        onClose={onCloseCheckModal}
+        step={step}
+        setStep={setStep}
+        setAns={updateAns}
+        appendSolution={appendSolution}
+        setCurrentIndex={setCurrentIndex}
+        setIsSolving={setIsSolving}
+        setSolutionCount={setSolutionCount}
+        onSolveStart={onSolveStart}
+        abortRef={abortRef}
+      />
+
+      {ans && ans.length > 0 && (
+        <Flex
+          align="center"
+          justify="center"
+          gap={2}
+          px={3}
+          py={3}
+          flexWrap="wrap"
+        >
+          <Button
+            onClick={handleLeftClick}
+            isDisabled={currentIndex === 0}
+            size="sm"
+            variant="outline"
+          >
             ←
           </Button>
-          <Box mt = '2' mr = '2'>{currentIndex + 1} / {ans.length}  </Box>
-          <Button onClick={handleRightClick} disabled={currentIndex === ans.length - 1}>
+          <Text fontFamily="mono" fontSize="sm" minW="72px" textAlign="center">
+            {currentIndex + 1} / {ans.length}
+          </Text>
+          <Button
+            onClick={handleRightClick}
+            isDisabled={currentIndex === ans.length - 1}
+            size="sm"
+            variant="outline"
+          >
             →
           </Button>
-            <Input
-              value={inputValue}
-              onChange={handleInputChange}
-              placeholder="Enter index"
-              textAlign="center"
-              width="25%"
-            />
-            <Button onClick={handleButtonClick} ml = {2}>Go to</Button>
-          
+          <Input
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="Index"
+            textAlign="center"
+            width="88px"
+            size="sm"
+            borderRadius="lg"
+          />
+          <Button onClick={handleButtonClick} size="sm">
+            Go
+          </Button>
         </Flex>
       )}
-      </Box>
-  );
-};
+    </Box>
+  )
+}
 
 Navbar.propTypes = {
-  Rectangles: PropTypes.arrayOf(
-    PropTypes.shape({
-      length: PropTypes.number.isRequired,
-      width: PropTypes.number.isRequired,
-      x: PropTypes.number.isRequired,
-      y: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
+  Rectangles: PropTypes.array,
   setRectangles: PropTypes.func.isRequired,
-};
+  isSolving: PropTypes.bool,
+  setIsSolving: PropTypes.func,
+  solutionCount: PropTypes.number,
+  setSolutionCount: PropTypes.func,
+  onSolveStart: PropTypes.func,
+}
 
-export default Navbar;
+export default Navbar
